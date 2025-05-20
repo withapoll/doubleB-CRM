@@ -210,10 +210,95 @@
       </div>
     </div>
   </teleport>
+  <teleport to="body">
+    <div v-if="showProductModal" class="modal-overlay">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>{{ isEditing ? 'Редактирование товара' : 'Новый товар' }}</h3>
+          <button @click="closeProductModal" class="close-btn">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <form @submit.prevent="handleSubmit">
+            <div class="form-group">
+              <label>Название <span class="required">*</span></label>
+              <input
+                v-model="formData.name"
+                type="text"
+                required
+                class="form-control"
+                :class="{ invalid: errors.name }"
+              />
+              <div v-if="errors.name" class="error-message">{{ errors.name }}</div>
+            </div>
+
+            <div class="form-group">
+              <label>Описание</label>
+              <textarea v-model="formData.description" class="form-control" rows="3"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Категория <span class="required">*</span></label>
+              <select
+                v-model="formData.category"
+                required
+                class="form-control"
+                :class="{ invalid: errors.category }"
+              >
+                <option value="">Выберите категорию</option>
+                <option v-for="category in categories" :value="category" :key="category">
+                  {{ category }}
+                </option>
+              </select>
+              <div v-if="errors.category" class="error-message">{{ errors.category }}</div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Цена <span class="required">*</span></label>
+                <input
+                  v-model="formData.price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  required
+                  class="form-control"
+                  :class="{ invalid: errors.price }"
+                />
+                <div v-if="errors.price" class="error-message">{{ errors.price }}</div>
+              </div>
+
+              <div class="form-group">
+                <label>Остаток <span class="required">*</span></label>
+                <input
+                  v-model="formData.stock"
+                  type="number"
+                  min="0"
+                  required
+                  class="form-control"
+                  :class="{ invalid: errors.stock }"
+                />
+                <div v-if="errors.stock" class="error-message">{{ errors.stock }}</div>
+              </div>
+            </div>
+
+            <div class="form-footer">
+              <button type="button" @click="closeProductModal" class="btn btn-secondary">
+                Отмена
+              </button>
+              <button type="submit" class="btn btn-primary">
+                {{ isEditing ? 'Сохранить изменения' : 'Добавить товар' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </teleport>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, reactive } from 'vue'
 import { supabase } from '@/lib/supabaseClient'
 
 const products = ref([])
@@ -264,20 +349,117 @@ const filteredProducts = computed(() => {
 })
 
 // Действия с товарами
-function showAddForm() {
-  // Реализация формы добавления
+
+const showProductModal = ref(false)
+const isEditing = ref(false)
+const currentProductId = ref(null)
+
+const formData = reactive({
+  name: '',
+  description: '',
+  category: '',
+  price: 0,
+  stock: 0,
+})
+
+const errors = reactive({
+  name: '',
+  category: '',
+  price: '',
+  stock: '',
+})
+
+const validateForm = () => {
+  let isValid = true
+  errors.name = formData.name.trim() ? '' : 'Название обязательно'
+  errors.category = formData.category ? '' : 'Выберите категорию'
+  errors.price = formData.price > 0 ? '' : 'Цена должна быть больше 0'
+  errors.stock = formData.stock >= 0 ? '' : 'Неверное количество'
+
+  isValid = !Object.values(errors).some((error) => error)
+  return isValid
 }
 
-function editProduct(product) {
-  // Реализация редактирования
+const resetForm = () => {
+  formData.name = ''
+  formData.description = ''
+  formData.category = ''
+  formData.price = 0
+  formData.stock = 0
+  currentProductId.value = null
+  Object.keys(errors).forEach((key) => (errors[key] = ''))
+}
+
+const showAddForm = () => {
+  isEditing.value = false
+  resetForm()
+  showProductModal.value = true
+}
+
+const editProduct = (product) => {
+  isEditing.value = true
+  currentProductId.value = product.id
+  formData.name = product.name
+  formData.description = product.description
+  formData.category = product.category
+  formData.price = product.price
+  formData.stock = product.stock
+  showProductModal.value = true
+}
+
+const closeProductModal = () => {
+  showProductModal.value = false
+  resetForm()
+}
+
+const handleSubmit = async () => {
+  if (!validateForm()) return
+
+  try {
+    const productData = {
+      name: formData.name.trim(),
+      description: formData.description.trim(),
+      category: formData.category,
+      price: parseFloat(formData.price),
+      stock: parseInt(formData.stock),
+    }
+
+    if (isEditing.value) {
+      const { error } = await supabase
+        .from('products')
+        .update(productData)
+        .eq('id', currentProductId.value)
+
+      if (error) throw error
+    } else {
+      const { error } = await supabase.from('products').insert(productData)
+
+      if (error) throw error
+    }
+
+    await fetchData()
+    closeProductModal()
+  } catch (error) {
+    console.error('Ошибка сохранения товара:', error)
+    alert('Произошла ошибка при сохранении товара')
+  }
 }
 
 async function deleteProduct(id) {
   try {
-    await supabase.from('products').delete().eq('id', id)
-    await fetchData()
+    const { error } = await supabase.from('products').delete().eq('id', id)
+
+    if (error) {
+      console.error('Supabase error:', error)
+      alert('Ошибка удаления: ' + error.message)
+      return
+    }
+
+    // Обновляем список товаров
+    products.value = products.value.filter((p) => p.id !== id)
   } catch (error) {
-    console.error('Ошибка удаления:', error)
+    console.error('General error:', error)
+    alert('Неизвестная ошибка при удалении')
   }
 }
 
@@ -573,5 +755,58 @@ const submitOrder = async () => {
   display: flex;
   gap: 10px;
   align-items: center;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.required {
+  color: #dc3545;
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+.invalid {
+  border-color: #dc3545 !important;
+}
+
+.form-footer {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: opacity 0.3s;
+}
+
+.btn:hover {
+  opacity: 0.9;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-primary {
+  background: #007bff;
+  color: white;
 }
 </style>
