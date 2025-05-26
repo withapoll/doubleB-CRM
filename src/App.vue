@@ -19,3 +19,9 @@ export default {
   },
 }
 </script>
+
+<style>
+.app-wrapper {
+  background: #f8f9fa;
+}
+</style>

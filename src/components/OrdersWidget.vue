@@ -84,83 +84,182 @@ onMounted(() => {
 
 <style scoped>
 .orders-widget {
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(20px) saturate(180%);
+  border-radius: 24px;
+  padding: 28px;
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.06),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.4);
   margin-top: 30px;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.orders-widget:hover {
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.1),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.6);
 }
 
 .widget-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 20px;
-  color: #2c3e50;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 24px;
+  color: #1a1a1a;
+  position: relative;
+  display: inline-block;
+  background: #333;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .orders-list {
   display: grid;
-  gap: 15px;
+  gap: 20px;
 }
 
 .order-card {
-  border: 1px solid #eee;
-  border-radius: 8px;
-  padding: 15px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.order-card:hover {
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+.order-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.6s;
+}
+
+.order-card:hover::before {
+  left: 150%;
 }
 
 .order-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .order-id {
-  font-size: 0.9rem;
-  color: #666;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #4b5563;
+  letter-spacing: -0.02em;
 }
 
 .order-status {
-  font-size: 0.8rem;
-  padding: 4px 8px;
-  border-radius: 12px;
+  font-size: 0.85rem;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 600;
+  backdrop-filter: blur(4px);
 }
 
 .status-processing {
-  background: #fff3cd;
-  color: #856404;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.15) 100%);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.2);
 }
 
 .status-completed {
-  background: #d4edda;
-  color: #155724;
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.15) 0%, rgba(16, 185, 129, 0.15) 100%);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
 .status-canceled {
-  background: #f8d7da;
-  color: #721c24;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.15) 100%);
+  color: #dc2626;
+  border: 1px solid rgba(220, 38, 38, 0.2);
 }
 
 .product-name {
-  font-size: 1rem;
-  margin-bottom: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.product-name::before {
+  content: '🍔';
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.1));
 }
 
 .order-comment {
-  font-size: 0.9rem;
-  color: #666;
-  margin-bottom: 8px;
+  font-size: 0.95rem;
+  color: #4b5563;
+  margin-bottom: 12px;
+  padding: 12px;
+  background: rgba(249, 250, 251, 0.6);
+  border-radius: 8px;
+  border-left: 3px solid rgba(79, 70, 229, 0.4);
 }
 
 .order-meta {
   display: flex;
   justify-content: space-between;
-  font-size: 0.8rem;
-  color: #888;
+  font-size: 0.85rem;
+  color: #6b7280;
+  padding-top: 12px;
+  margin-top: 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .date {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-style: italic;
+}
+
+.date::before {
+  content: '⏳';
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.1));
+}
+
+@keyframes shine {
+  0% {
+    transform: translateX(-100%) skew(-15deg);
+  }
+  100% {
+    transform: translateX(200%) skew(-15deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .orders-widget {
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  .widget-title {
+    font-size: 1.2rem;
+  }
+
+  .product-name {
+    font-size: 1rem;
+  }
 }
 </style>

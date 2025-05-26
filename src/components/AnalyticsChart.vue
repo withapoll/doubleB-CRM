@@ -419,32 +419,141 @@ watch(chartType, () => {
 <style scoped>
 .analytics-chart {
   margin-top: 2rem;
-  padding: 1rem;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 0;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(24px) saturate(180%);
+  border-radius: 28px;
+  box-shadow:
+    0 32px 64px rgba(0, 0, 0, 0.06),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.4),
+    inset 0 -4px 12px rgba(255, 255, 255, 0.4);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  overflow: hidden;
+  position: relative;
+}
+
+.analytics-chart::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.08) 0%, transparent 60%);
+  pointer-events: none;
 }
 
 .card-header {
-  background: #f8f9fa;
-  border-bottom: 1px solid #eee;
+  padding: 1.5rem 2rem;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: left;
+  gap: 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  position: relative;
+}
+
+.chart-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #4f46e5 30%, #ec4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.02em;
+  position: relative;
+  padding-left: 40px;
+}
+
+.chart-title::before {
+  content: '📊';
+  position: absolute;
+  left: 0;
+  top: -2px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
 #chart {
-  min-height: 400px;
+  min-height: 420px;
+  padding: 1.5rem 2rem 2rem;
+  opacity: 0.95;
+  transition: opacity 0.4s ease;
 }
 
-@media (max-width: 768px) {
-  .card-header {
-    gap: 1rem;
-  }
-
-  #chart {
-    min-height: 300px;
-  }
+#chart:hover {
+  opacity: 1;
 }
 
 .form-select-sm {
   max-width: 200px;
+  border: 1px solid rgba(203, 213, 225, 0.3);
+  border-radius: 12px;
+  padding: 0.65rem 1.25rem;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
+  appearance: none;
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1.2em;
+}
+
+.form-select-sm:focus {
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow:
+    0 0 0 3px rgba(99, 102, 241, 0.15),
+    0 4px 24px rgba(99, 102, 241, 0.1);
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+@media (max-width: 768px) {
+  .analytics-chart {
+    margin-top: 1.5rem;
+    border-radius: 24px;
+  }
+
+  .card-header {
+    padding: 1.25rem;
+    flex-direction: column;
+    align-items: left;
+    gap: 1rem;
+  }
+
+  .chart-title {
+    font-size: 1.25rem;
+    padding-left: 36px;
+  }
+
+  .chart-title::before {
+    font-size: 1.2em;
+    top: -1px;
+  }
+
+  #chart {
+    min-height: 300px;
+    padding: 1rem 1.25rem 1.5rem;
+  }
+
+  .form-select-sm {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+@keyframes chart-fade {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+#chart {
+  animation: chart-fade 0.6s ease forwards;
 }
 </style>

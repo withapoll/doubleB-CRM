@@ -77,110 +77,214 @@ onMounted(() => {
 
 <style scoped>
 .employees-preview {
-  background: #fff;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px) saturate(180%);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.05),
+    inset 0 0 12px rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   margin: 20px 0;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .view-all {
-  color: #007bff;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(0, 123, 255, 0.1) 0%, rgba(108, 99, 255, 0.1) 100%);
+  color: #0066ff;
   text-decoration: none;
-  font-size: 0.9em;
-  transition: opacity 0.3s;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.view-all::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 80%
+  );
+  opacity: 0;
+  transition: opacity 0.4s;
 }
 
 .view-all:hover {
-  opacity: 0.8;
+  box-shadow: 0 4px 20px rgba(0, 102, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.view-all:hover::before {
+  opacity: 1;
+  animation: shine 1.5s;
 }
 
 .employees-list {
   display: grid;
-  gap: 12px;
+  gap: 16px;
 }
 
 .employee-card {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  transition: transform 0.2s;
+  padding: 18px;
+  background: rgba(248, 249, 250, 0.6);
+  border-radius: 14px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.employee-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.6s;
 }
 
 .employee-card:hover {
-  transform: translateX(5px);
+  transform: translateX(8px);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.employee-card:hover::after {
+  left: 150%;
 }
 
 .name-role {
   flex: 1;
+  position: relative;
+  z-index: 1;
 }
 
 .role-badge {
-  display: inline-block;
-  padding: 2px 8px;
-  background: #e9ecef;
-  border-radius: 4px;
-  font-size: 0.8em;
-  margin-top: 4px;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  background: linear-gradient(135deg, rgba(108, 99, 255, 0.1) 0%, rgba(0, 123, 255, 0.1) 100%);
+  border-radius: 8px;
+  font-size: 0.85em;
+  font-weight: 500;
+  color: #4d4dff;
+  margin-top: 6px;
+  backdrop-filter: blur(4px);
 }
 
 .employee-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 0.9em;
+  font-weight: 500;
   margin: 0 15px;
   min-width: 100px;
-  text-align: center;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.7);
 }
 
-.present {
-  color: #28a745;
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
 }
-.absent {
-  color: #dc3545;
+
+.present .status-dot {
+  background: #00c853;
 }
-.sick {
-  color: #ffc107;
+.absent .status-dot {
+  background: #ff5252;
 }
-.vacation {
-  color: #17a2b8;
+.sick .status-dot {
+  background: #ffc107;
+}
+.vacation .status-dot {
+  background: #00bcd4;
 }
 
 .profile-link {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  color: #6c757d;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(0, 123, 255, 0.1) 0%, rgba(108, 99, 255, 0.1) 100%);
+  color: #4d4dff;
   text-decoration: none;
-  padding: 6px 12px;
-  border-radius: 20px;
-  border: 1px solid #dee2e6;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
 .profile-link:hover {
-  background: #007bff;
-  color: white;
-  border-color: #007bff;
+  background: linear-gradient(135deg, rgba(0, 123, 255, 0.2) 0%, rgba(108, 99, 255, 0.2) 100%);
+  box-shadow: 0 4px 15px rgba(77, 77, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(0.95);
+  }
+}
+
+@keyframes shine {
+  0% {
+    transform: translateX(-50%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(150%) rotate(45deg);
+  }
 }
 
 .loading-status,
 .error-status,
 .empty-status {
-  padding: 20px;
+  padding: 32px;
   text-align: center;
-  color: #6c757d;
+  color: rgba(0, 0, 0, 0.4);
+  font-size: 1.1em;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 16px;
+  margin: 20px 0;
 }
 
 .error-status {
-  color: #dc3545;
+  color: #ff5252;
+  background: rgba(255, 82, 82, 0.05);
 }
 </style>
