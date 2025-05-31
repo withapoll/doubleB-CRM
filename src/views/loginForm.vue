@@ -2,6 +2,7 @@
   <div class="auth-container">
     <div class="glass-card">
       <div class="card-content">
+        <h2 class="auth-title">ДАБЛБИ</h2>
         <h2 class="auth-title">Вход в систему</h2>
 
         <form @submit.prevent="handleSubmit" class="auth-form" novalidate>
