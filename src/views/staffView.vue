@@ -102,13 +102,11 @@ const selectedStatus = ref('')
 const selectedRole = ref('')
 
 const statusOptions = ['на месте', 'отсутствует', 'на больничном', 'в отпуске']
-
 const roleOptions = ['бариста', 'менеджер', 'администратор', 'су-шеф', 'повар']
 
 async function getStaff() {
   try {
     loading.value = true
-
     let query = supabase.from('staff').select('*').order('name', { ascending: true })
 
     if (searchQuery.value) {
@@ -129,6 +127,8 @@ async function getStaff() {
     staff.value = data
   } catch (error) {
     console.error('Ошибка загрузки данных:', error)
+    // Добавим уведомление для пользователя
+    uploadStatus.value = `Ошибка загрузки: ${error.message}`
   } finally {
     loading.value = false
   }
@@ -182,74 +182,145 @@ const fileInput = ref(null)
 const uploadStatus = ref('')
 
 const handleFileUpload = async (event) => {
-  const file = event.target.files[0]
-  if (!file) return
-
+  const file = event.target.files[0];
+  if (!file) return;
+  
   try {
-    uploadStatus.value = 'Обработка файла...'
-    const data = await readFile(file)
-    const validatedData = validateData(data)
+    uploadStatus.value = 'Обработка файла...';
+    
+    // Проверка расширения файла
+    const validExtensions = /\.(csv|xlsx|xls)$/i;
+    if (!validExtensions.test(file.name)) {
+      throw new Error("Разрешены только CSV/Excel файлы");
+    }
 
-    uploadStatus.value = 'Загрузка в базу...'
-    const { error } = await supabase.from('staff').insert(validatedData)
+    const data = await readFile(file);
+    const validatedData = validateData(data);
 
-    if (error) throw error
+    console.log("Валидированные данные:", validatedData);
+    
+    uploadStatus.value = 'Загрузка в базу...';
+    const { error } = await supabase
+      .from('staff')
+      .insert(validatedData);
 
-    uploadStatus.value = 'Данные успешно загружены!'
-    setTimeout(() => (uploadStatus.value = ''), 3000)
-    getStaff() // Обновляем список
+    if (error) {
+      console.error("Supabase error:", error);
+      
+      // Специальная обработка ошибки уникальности
+      if (error.code === '23505') {
+        const field = error.details.includes('email') ? 'email' : 'данных';
+        throw new Error(`Конфликт ${field}: некоторые записи уже существуют`);
+      }
+      
+      throw new Error(`Ошибка базы данных: ${error.message}`);
+    }
+
+    uploadStatus.value = `Успешно загружено ${validatedData.length} записей!`;
+    setTimeout(() => (uploadStatus.value = ''), 5000);
+    
+    // Обновляем данные и сбрасываем фильтры
+    await getStaff();
+    resetFilters();
+    
   } catch (error) {
-    uploadStatus.value = `Ошибка: ${error.message}`
-    console.error('Import error:', error)
+    uploadStatus.value = `Ошибка: ${error.message}`;
+    console.error('Import error:', error);
+  } finally {
+    // Сброс поля ввода файла
+    event.target.value = '';
   }
-}
+};
 
 const readFile = (file) => {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader()
+    const reader = new FileReader();
 
     reader.onload = (e) => {
-      const data = new Uint8Array(e.target.result)
-      const workbook = XLSX.read(data, { type: 'array' })
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
-      const jsonData = XLSX.utils.sheet_to_json(sheet)
-      resolve(jsonData)
-    }
+      try {
+        let workbook;
+        
+        if (file.name.endsWith('.csv')) {
+          // Для CSV используем специальный парсер
+          workbook = XLSX.read(e.target.result, {
+            type: 'string',
+            codepage: 65001, // UTF-8
+            sheetStubs: true,
+            cellDates: true
+          });
+        } else {
+          // Для Excel бинарные данные
+          const data = new Uint8Array(e.target.result);
+          workbook = XLSX.read(data, { type: 'array' });
+        }
+        
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+        
+        if (!jsonData.length) {
+          throw new Error("Файл не содержит данных");
+        }
+        
+        resolve(jsonData);
+      } catch (error) {
+        reject(error);
+      }
+    };
 
-    reader.onerror = (error) => reject(error)
+    reader.onerror = (error) => reject(error);
 
     if (file.name.endsWith('.csv')) {
-      reader.readAsText(file)
+      reader.readAsText(file, 'UTF-8');
     } else {
-      reader.readAsArrayBuffer(file)
+      reader.readAsArrayBuffer(file);
     }
-  })
-}
+  });
+};
 
 const validateData = (data) => {
-  const requiredFields = ['name', 'email', 'phone_number', 'status', 'role', 'salary']
+  const requiredFields = ['name', 'email', 'phone_number', 'status', 'role', 'salary'];
+  
+  if (!Array.isArray(data)) {
+    throw new Error("Некорректный формат данных");
+  }
 
   return data.map((item, index) => {
     // Проверка обязательных полей
     requiredFields.forEach((field) => {
-      if (!item[field]) throw new Error(`Строка ${index + 1}: отсутствует поле ${field}`)
-    })
+      if (item[field] === undefined || item[field] === null || item[field] === '') {
+        throw new Error(`Строка ${index + 1}: отсутствует поле "${field}"`);
+      }
+    });
 
-    // Нормализация телефона
-    if (item.phone_number) {
-      item.phone_number = item.phone_number.replace(/[^\d+]/g, '')
+    // Проверка и нормализация email
+    const email = item.email.toString().toLowerCase().trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      throw new Error(`Строка ${index + 1}: неверный формат email`);
+    }
+
+    // Проверка и нормализация телефона
+    let phone = item.phone_number.toString().replace(/[^\d+]/g, '');
+    if (!phone.startsWith('+')) {
+      phone = `+${phone}`;
+    }
+
+    // Проверка зарплаты
+    const salary = Number(item.salary);
+    if (isNaN(salary)) {
+      throw new Error(`Строка ${index + 1}: зарплата должна быть числом`);
     }
 
     return {
-      name: item.name,
-      email: item.email.toLowerCase().trim(),
-      phone_number: item.phone_number,
-      status: item.status,
-      role: item.role,
-      salary: item.salary,
-    }
-  })
-}
+      name: item.name.toString().trim(),
+      email: email,
+      phone_number: phone,
+      status: item.status.toString(),
+      role: item.role.toString(),
+      salary: salary
+    };
+  });
+};
 
 const downloadTemplate = () => {
   const template = [
