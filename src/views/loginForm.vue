@@ -4,7 +4,7 @@
       <div class="card-content">
         <h2 class="auth-title">Вход в систему</h2>
 
-        <form @submit.prevent="handleSubmit" class="auth-form">
+        <form @submit.prevent="handleSubmit" class="auth-form" novalidate>
           <!-- Email Input -->
           <div class="input-group">
             <input
@@ -56,8 +56,8 @@ export default {
     }
   },
   methods: {
-    handleSubmit() {
-      const form = document.querySelector('.needs-validation')
+    handleSubmit(event) {
+      const form = event.target
       if (!form.checkValidity()) {
         form.classList.add('was-validated')
         return
@@ -65,14 +65,31 @@ export default {
       this.submitForm()
     },
     submitForm() {
-      console.log('Форма отправлена:', this.form)
-      this.$router.push('/statistics')
+      const validEmail = 'a.letch@double.com'
+      const validPassword = 'polunin.me'
+      
+      if (this.form.email === validEmail && this.form.password === validPassword) {
+        localStorage.setItem('isAuthenticated', 'true')
+        console.log('Успешный вход!')
+        this.$router.push('/statistics')
+      } else {
+        alert('Неверный email или пароль!')
+      }
     },
   },
 }
 </script>
 
 <style scoped>
+
+.was-validated .modern-input:invalid {
+  border-color: #ff6b6b;
+}
+
+.was-validated .modern-input:invalid ~ .invalid-message {
+  display: block;
+}
+
 .auth-container {
   min-height: 100vh;
   display: flex;

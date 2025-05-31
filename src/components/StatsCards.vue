@@ -46,7 +46,7 @@
               <div>
                 <h5 class="stat-title mb-1">Блюда</h5>
                 <div class="stat-content">
-                  <span class="stat-value">25</span>
+                  <span class="stat-value">36</span>
                   <span class="stat-change positive">+7%</span>
                 </div>
               </div>
@@ -64,7 +64,7 @@
               <div>
                 <h5 class="stat-title mb-1">Сотрудники</h5>
                 <div class="stat-content">
-                  <span class="stat-value">15</span>
+                  <span class="stat-value">12</span>
                   <span class="stat-change positive">+25%</span>
                 </div>
               </div>
