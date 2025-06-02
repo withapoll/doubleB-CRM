@@ -603,7 +603,7 @@ const submitOrder = async () => {
   gap: 1rem;
   margin-bottom: 2rem;
   padding: 1.5rem;
-  background: var(--surface);
+  background: #fff;
   border-radius: 16px;
   backdrop-filter: blur(8px);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
